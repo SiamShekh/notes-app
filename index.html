@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'" /> -->
+  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
+  <title>Hello from Electron renderer!</title>
+</head>
+
+<body style="margin: 0;">
+  <div style="display: flex; padding: 10px; gap: 10px;">
+
+    <div style="width: 30%; background-color: #f3f3f3; height: 85vh; padding: 10px; border-radius: 20px;">
+      <div id="noteParent" style="background-color: #c1baba; padding: 3px 10px; border-radius: 10px;">
+        <!-- <p>Video idea list: in next week i week 10 video for 3rd channel</p> -->
+      </div>
+    </div>
+    <div style="width: 70%; background-color: aliceblue; border-radius: 20px; padding: 10px;">
+      <textarea id="input"
+        style="display: block; height: 60vh; width: 100%; border-radius: 20px; padding: 10px;"></textarea>
+      <button onclick="addNote()" style="margin-top: 10px;">Add note</button>
+
+      <script>
+        function addNote() {
+          const inputValue = document.getElementById("input").value;
+
+          const notes = localStorage.getItem("notes");
+
+          if (notes) {
+            const newNotes = [...JSON.parse(notes), inputValue];
+            localStorage.setItem('notes', JSON.stringify(newNotes));
+          } else {
+            localStorage.setItem('notes', JSON.stringify([inputValue]));
+          }
+        }
+
+      </script>
+
+      <script>
+        const noteParent = document.getElementById("noteParent");
+        const notes = localStorage.getItem("notes");
+
+        if (notes) {
+          const noteArr = JSON.parse(notes);
+          noteArr.map((val) => {
+            const p = document.createElement("p");
+            p.innerText = val;
+            noteParent.append(p);
+          })
+        }
+
+      </script>
+    </div>
+  </div>
+
+</body>
+
+</html>
