@@ -1,59 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'" /> -->
-  <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
-  <title>Hello from Electron renderer!</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
+    <title>Notes</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 
-<body style="margin: 0;">
-  <div style="display: flex; padding: 10px; gap: 10px;">
+<body>
+    <div class="notes-container">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">
+                    <h1>Notes</h1><button class="new-note-btn">+</button>
+                </div>
+                <div class="search-box"><span class="search-icon">🔍</span><input type="text" placeholder="Search">
+                </div>
+            </div>
+            <div class="notes-list">
+                <div class="notes-section">
+                    <div class="section-label">Pinned</div>
+                    <div class="note-item active">
+                        <div class="note-header"><span class="pin-icon">📌</span>
+                            <div class="note-title">Meeting Notes</div>
+                        </div>
+                        <div class="note-meta"><span>Jan 15</span><span class="note-preview">Discuss Q1 goals and
+                                objectives...</span></div>
+                    </div>
+                </div>
+                <div id="notes_parent" class="notes-section">
+                    <div class="section-label">Notes</div>
 
-    <div style="width: 30%; background-color: #f3f3f3; height: 85vh; padding: 10px; border-radius: 20px;">
-      <div id="noteParent" style="background-color: #c1baba; padding: 3px 10px; border-radius: 10px;">
-        <!-- <p>Video idea list: in next week i week 10 video for 3rd channel</p> -->
-      </div>
+                </div>
+            </div>
+        </div>
+        <div class="editor">
+            <div class="editor-toolbar">
+                <div class="last-edited">Last edited Jan 15, 2025 at 2:30 PM</div>
+                <button onclick="note()" class="pin-btn">✅</button>
+            </div>
+            <div class="editor-content">
+                <input type="text" id="title" required class="note-title-input" placeholder="Title">
+                <textarea class="note-content-input" required id="details" placeholder="Start writing..."></textarea>
+            </div>
+        </div>
     </div>
-    <div style="width: 70%; background-color: aliceblue; border-radius: 20px; padding: 10px;">
-      <textarea id="input"
-        style="display: block; height: 60vh; width: 100%; border-radius: 20px; padding: 10px;"></textarea>
-      <button onclick="addNote()" style="margin-top: 10px;">Add note</button>
-
-      <script>
-        function addNote() {
-          const inputValue = document.getElementById("input").value;
-
-          const notes = localStorage.getItem("notes");
-
-          if (notes) {
-            const newNotes = [...JSON.parse(notes), inputValue];
-            localStorage.setItem('notes', JSON.stringify(newNotes));
-          } else {
-            localStorage.setItem('notes', JSON.stringify([inputValue]));
-          }
-        }
-
-      </script>
-
-      <script>
-        const noteParent = document.getElementById("noteParent");
-        const notes = localStorage.getItem("notes");
-
-        if (notes) {
-          const noteArr = JSON.parse(notes);
-          noteArr.map((val) => {
-            const p = document.createElement("p");
-            p.innerText = val;
-            noteParent.append(p);
-          })
-        }
-
-      </script>
-    </div>
-  </div>
-
 </body>
+
+<script>
+    function note() {
+        const titleElement = document.getElementById('title');
+        const detailsElement = document.getElementById('details');
+
+        let title;
+        let details;
+
+        if (titleElement instanceof HTMLInputElement) {
+            title = titleElement.value;
+        }
+
+        if (detailsElement instanceof HTMLTextAreaElement) {
+            details = detailsElement.value;
+        }
+
+        window.api.note({ title, details });
+    }
+</script>
+
+<script>
+    async function name() {
+
+        // const data = await window.api.getNote();
+        // console.log(data);
+        window.api.getNote((_, data) => {
+            
+            const noteContainer = document.getElementById("notes_parent");
+
+            const parent = document.createElement("div");
+
+            for (let index = 0; index < data.length; index++) {
+                const element = data[index];
+
+                parent.innerHTML += `
+            <div class="note-item">
+                        <div class="note-header">
+                            <div class="note-title">${element?.title}</div>
+                        </div>
+                        <div class="note-meta"><span>${new Date(element?.meta?.created).toLocaleDateString()}</span><span class="note-preview">${element?.details}</span></div>
+                    </div>
+                    `;
+            }
+
+
+            noteContainer.appendChild(parent);
+
+        })
+    }
+
+    name();
+</script>
 
 </html>
