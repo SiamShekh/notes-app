@@ -20,7 +20,7 @@
                 </div>
             </div>
             <div class="notes-list">
-                <div class="notes-section">
+                <!-- <div class="notes-section">
                     <div class="section-label">Pinned</div>
                     <div class="note-item active">
                         <div class="note-header"><span class="pin-icon">📌</span>
@@ -29,10 +29,10 @@
                         <div class="note-meta"><span>Jan 15</span><span class="note-preview">Discuss Q1 goals and
                                 objectives...</span></div>
                     </div>
-                </div>
-                <div id="notes_parent" class="notes-section">
-                    <div class="section-label">Notes</div>
-
+                </div> -->
+                <div class="notes-section">
+                    <p class="section-label">Notes</p>
+                    <div id="notes_parent"></div>
                 </div>
             </div>
         </div>
@@ -70,20 +70,16 @@
 </script>
 
 <script>
-    async function name() {
-
-        // const data = await window.api.getNote();
-        // console.log(data);
+    async function notes() {
         window.api.getNote((_, data) => {
-            
             const noteContainer = document.getElementById("notes_parent");
 
-            const parent = document.createElement("div");
+            noteContainer.innerHTML = "";
 
             for (let index = 0; index < data.length; index++) {
                 const element = data[index];
 
-                parent.innerHTML += `
+                noteContainer.innerHTML += `
             <div class="note-item">
                         <div class="note-header">
                             <div class="note-title">${element?.title}</div>
@@ -92,14 +88,10 @@
                     </div>
                     `;
             }
-
-
-            noteContainer.appendChild(parent);
-
         })
     }
 
-    name();
+    notes();
 </script>
 
 </html>

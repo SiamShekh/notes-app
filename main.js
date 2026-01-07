@@ -1,39 +1,46 @@
 const { app, BrowserWindow, ipcMain } = require('electron')
-const loki = require('lokijs');
-const path = require('path');
+const loki = require('lokijs')
+const path = require('path')
 
-const db = new loki('notes.db');
-const notes = db.addCollection('notes');
+const adapter = new loki.LokiFsAdapter()
+const dbPath = path.join(app.getPath('userData'), 'notes.json')
 
+let db
+let notes
 let win
-const createWindow = () => {
+
+function createWindow() {
   win = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
-      preload: path.join(__dirname, "preload.js")
+      preload: path.join(__dirname, 'preload.js')
     }
   })
 
-
-  win.webContents.openDevTools();
-  win.loadFile('index.html');
+  win.loadFile('index.html')
 }
 
 app.whenReady().then(() => {
-  createWindow();
+  db = new loki(dbPath, {
+    adapter,
+    autoload: true,
+    autosave: true,
+    autosaveInterval: 1000,
+    autoloadCallback: () => {
+      notes = db.getCollection('notes') || db.addCollection('notes')
 
-  if (win) {
-    win.webContents.send("notes", notes.find({}));
-  }
+      createWindow()
 
-});
+      win.webContents.once('did-finish-load', () => {
+        win.webContents.send('notes', notes.find())
+      })
+    }
+  })
+})
 
-ipcMain.handle("note", (_, data) => {
-  console.log('data', data);
-  notes.insertOne(data);
-
-  win.webContents.send("notes", notes.find({}));
-
-});
-
+ipcMain.handle('note', (_, data) => {
+  notes.insert(data)
+  db.saveDatabase()
+  win.webContents.send('notes', notes.find())
+})
