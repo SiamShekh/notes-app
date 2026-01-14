@@ -9,6 +9,19 @@ let db
 let notes
 let win
 
+app.whenReady().then(() => {
+  db = new loki(dbPath, {
+    adapter,
+    autoload: true,
+    autosave: true,
+    autosaveInterval: 1000,
+    autoloadCallback: () => {
+      notes = db.getCollection('notes') || db.addCollection('notes');
+      createWindow()
+    }
+  })
+})
+
 function createWindow() {
   win = new BrowserWindow({
     width: 800,
@@ -18,29 +31,32 @@ function createWindow() {
     }
   })
 
-  win.loadFile('index.html')
-}
+  win.loadFile('index.html');
+  win.webContents.openDevTools();
 
-app.whenReady().then(() => {
-  db = new loki(dbPath, {
-    adapter,
-    autoload: true,
-    autosave: true,
-    autosaveInterval: 1000,
-    autoloadCallback: () => {
-      notes = db.getCollection('notes') || db.addCollection('notes')
-
-      createWindow()
-
-      win.webContents.once('did-finish-load', () => {
-        win.webContents.send('notes', notes.find())
-      })
-    }
+  win.webContents.on('did-finish-load', () => {
+    win.webContents.send('notes', notes.find())
   })
-})
+}
 
 ipcMain.handle('note', (_, data) => {
   notes.insert(data)
   db.saveDatabase()
-  win.webContents.send('notes', notes.find())
+  win.webContents.send('notes', notes.find());
+});
+
+ipcMain.handle("spacific-data", (_, data) => {
+  const res = notes.get(data?.id);
+
+  return res;
+});
+
+ipcMain.handle("update-data", (_, data) => {
+  const res = notes.get(data?.noteId);
+  res.title = data?.title;
+  res.details = data?.details;
+
+  notes.update(res);
+  win.webContents.send('notes', notes.find());
 })
+

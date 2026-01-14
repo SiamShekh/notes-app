@@ -65,11 +65,17 @@
             details = detailsElement.value;
         }
 
-        window.api.note({ title, details });
+        if (noteId == 0) {
+            window.api.note({ title, details });
+        } else {
+            window.api.updateSpacificNote({ title, details,noteId });
+        }
     }
 </script>
 
 <script>
+    var noteId = 0;
+
     async function notes() {
         window.api.getNote((_, data) => {
             const noteContainer = document.getElementById("notes_parent");
@@ -78,9 +84,11 @@
 
             for (let index = 0; index < data.length; index++) {
                 const element = data[index];
+                console.log(element);
+
 
                 noteContainer.innerHTML += `
-            <div class="note-item">
+            <div onclick="getDeatailsFn({pos: ${element?.$loki}})" class="note-item">
                         <div class="note-header">
                             <div class="note-title">${element?.title}</div>
                         </div>
@@ -89,6 +97,18 @@
                     `;
             }
         })
+    }
+
+    function getDeatailsFn(params) {
+        const title = document.getElementById("title");
+        const details = document.getElementById("details");
+
+        window.api.getSpacificNote({ id: params?.pos })
+            .then(res => {
+                title.value = res.title;
+                details.value = res.details;
+                noteId = res.$loki;
+            })
     }
 
     notes();
