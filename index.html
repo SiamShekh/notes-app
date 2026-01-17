@@ -1,93 +1,103 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self'" />
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <meta
+      http-equiv="X-Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'"
+    />
     <title>Notes</title>
-    <link rel="stylesheet" href="style.css">
-</head>
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-<body>
+  <body>
     <div class="notes-container">
-        <div class="sidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-title">
-                    <h1>Notes</h1><button class="new-note-btn">+</button>
-                </div>
-                <div class="search-box"><span class="search-icon">🔍</span><input type="text" placeholder="Search">
-                </div>
-            </div>
-            <div class="notes-list">
-                <!-- <div class="notes-section">
-                    <div class="section-label">Pinned</div>
-                    <div class="note-item active">
-                        <div class="note-header"><span class="pin-icon">📌</span>
-                            <div class="note-title">Meeting Notes</div>
-                        </div>
-                        <div class="note-meta"><span>Jan 15</span><span class="note-preview">Discuss Q1 goals and
-                                objectives...</span></div>
-                    </div>
-                </div> -->
-                <div class="notes-section">
-                    <p class="section-label">Notes</p>
-                    <div id="notes_parent"></div>
-                </div>
-            </div>
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-title">
+            <h1>Notes</h1>
+            <button class="new-note-btn">+</button>
+          </div>
+          <!-- <div class="search-box">
+            <span class="search-icon">🔍</span
+            ><input type="text" placeholder="Search" />
+          </div> -->
         </div>
-        <div class="editor">
-            <div class="editor-toolbar">
-                <div class="last-edited">Last edited Jan 15, 2025 at 2:30 PM</div>
-                <button onclick="note()" class="pin-btn">✅</button>
-            </div>
-            <div class="editor-content">
-                <input type="text" id="title" required class="note-title-input" placeholder="Title">
-                <textarea class="note-content-input" required id="details" placeholder="Start writing..."></textarea>
-            </div>
+        <div class="notes-list">
+          <div class="notes-section">
+            <p class="section-label">Notes</p>
+            <div id="notes_parent"></div>
+          </div>
         </div>
+      </div>
+      <div class="editor">
+        <div class="editor-toolbar">
+          <div class="last-edited" id="last-edit"></div>
+          <div class="pin-container">
+            <button onclick="note()" class="pin-btn">✅</button>
+            <button id="delete-note-btn" style="display: none" class="pin-btn">
+              🛑
+            </button>
+          </div>
+        </div>
+        <div class="editor-content">
+          <input
+            type="text"
+            id="title"
+            required
+            class="note-title-input"
+            placeholder="Title"
+          />
+          <textarea
+            class="note-content-input"
+            required
+            id="details"
+            placeholder="Start writing..."
+          ></textarea>
+        </div>
+      </div>
     </div>
-</body>
+  </body>
 
-<script>
+  <script>
     function note() {
-        const titleElement = document.getElementById('title');
-        const detailsElement = document.getElementById('details');
+      const titleElement = document.getElementById("title");
+      const detailsElement = document.getElementById("details");
 
-        let title;
-        let details;
+      let title;
+      let details;
 
-        if (titleElement instanceof HTMLInputElement) {
-            title = titleElement.value;
-        }
+      if (titleElement instanceof HTMLInputElement) {
+        title = titleElement.value;
+      }
 
-        if (detailsElement instanceof HTMLTextAreaElement) {
-            details = detailsElement.value;
-        }
+      if (detailsElement instanceof HTMLTextAreaElement) {
+        details = detailsElement.value;
+      }
 
-        if (noteId == 0) {
-            window.api.note({ title, details });
-        } else {
-            window.api.updateSpacificNote({ title, details,noteId });
-        }
+      if (noteId == 0) {
+        window.api.note({ title, details });
+      } else {
+        window.api.updateSpacificNote({ title, details, noteId });
+      }
     }
-</script>
+  </script>
 
-<script>
+  <script>
     var noteId = 0;
-
+    var lastEdit;
     async function notes() {
-        window.api.getNote((_, data) => {
-            const noteContainer = document.getElementById("notes_parent");
+      window.api.getNote((_, data) => {
+        const noteContainer = document.getElementById("notes_parent");
 
-            noteContainer.innerHTML = "";
+        noteContainer.innerHTML = "";
 
-            for (let index = 0; index < data.length; index++) {
-                const element = data[index];
-                console.log(element);
+        for (let index = 0; index < data.length; index++) {
+          const element = data[index];
+          console.log(element);
 
-
-                noteContainer.innerHTML += `
+          noteContainer.innerHTML += `
             <div onclick="getDeatailsFn({pos: ${element?.$loki}})" class="note-item">
                         <div class="note-header">
                             <div class="note-title">${element?.title}</div>
@@ -95,23 +105,47 @@
                         <div class="note-meta"><span>${new Date(element?.meta?.created).toLocaleDateString()}</span><span class="note-preview">${element?.details}</span></div>
                     </div>
                     `;
-            }
-        })
+        }
+      });
     }
 
     function getDeatailsFn(params) {
-        const title = document.getElementById("title");
-        const details = document.getElementById("details");
+      const title = document.getElementById("title");
+      const details = document.getElementById("details");
+      const lastEditEle = document.getElementById("last-edit");
+      const deleteBtn = document.getElementById("delete-note-btn");
 
-        window.api.getSpacificNote({ id: params?.pos })
-            .then(res => {
-                title.value = res.title;
-                details.value = res.details;
-                noteId = res.$loki;
-            })
+      window.api.getSpacificNote({ id: params?.pos }).then((res) => {
+        title.value = res.title;
+        details.value = res.details;
+        noteId = res.$loki;
+        deleteBtn.style.display = "flex";
+        deleteBtn.addEventListener("click", () => deleteNote(res.$loki));
+
+        if (res?.meta?.updated) {
+          lastEditEle.innerText = `Last edited ${new Date(res?.meta?.updated).toLocaleDateString()} at ${new Date(res?.meta?.updated).toLocaleTimeString()}`;
+        } else {
+          lastEditEle.innerText = ``;
+        }
+      });
     }
 
     notes();
-</script>
+  </script>
 
+  <script>
+    function deleteNote(noteId) {
+      const title = document.getElementById("title");
+      const details = document.getElementById("details");
+      const deleteBtn = document.getElementById("delete-note-btn");
+      const lastEditEle = document.getElementById("last-edit");
+
+      window.api.deleteNote({ noteId });
+      title.value = "";
+      details.value = "";
+      deleteBtn.style.display = "none";
+      lastEditEle.innerText = "";
+      noteId = 0;
+    }
+  </script>
 </html>

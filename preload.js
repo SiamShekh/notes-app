@@ -7,4 +7,5 @@ contextBridge.exposeInMainWorld("api", {
   getNote: (callback) => ipcRenderer.on("notes", callback),
   getSpacificNote: (data) => ipcRenderer.invoke("spacific-data", data),
   updateSpacificNote: (data) => ipcRenderer.invoke("update-data", data),
+  deleteNote: (data)=> ipcRenderer.invoke("delete-data", data)
 })

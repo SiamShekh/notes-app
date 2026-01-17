@@ -281,3 +281,10 @@ body {
 .editor-content::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, .2)
 }
+
+.pin-container{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
